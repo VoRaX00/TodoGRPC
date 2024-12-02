@@ -12,12 +12,12 @@ type App struct {
 }
 
 func New(log *slog.Logger, grpcPort int, storagePath string) *App {
-	_, err := postgres.New(storagePath)
+	storage, err := postgres.New(storagePath)
 	if err != nil {
 		panic(err)
 	}
 
-	taskService := tasks.New(log)
+	taskService := tasks.New(log, storage, storage, storage, storage)
 	grpcApp := grpcapp.New(log, taskService, grpcPort)
 	return &App{
 		GRPCSrv: grpcApp,
