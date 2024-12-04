@@ -3,8 +3,8 @@ package postgres
 import (
 	"context"
 	"fmt"
+	tasksv1 "github.com/VoRaX00/todoProto/gen/go/tasks"
 	"github.com/jmoiron/sqlx"
-	"todoGRPC/internal/domain/models"
 )
 
 type Storage struct {
@@ -21,19 +21,19 @@ func New(storagePath string) (*Storage, error) {
 	return &Storage{db: db}, nil
 }
 
-func (s *Storage) SaveTask(ctx context.Context, name, description, deadline, token string) (*models.Task, error) {
+func (s *Storage) SaveTask(ctx context.Context, name, description, deadline, token string) (*tasksv1.Task, error) {
 	panic("implement me")
 }
 
-func (s *Storage) Tasks(ctx context.Context, page, countTaskOnPage int) ([]models.Task, error) {
+func (s *Storage) Tasks(ctx context.Context, page, countTaskOnPage int) ([]*tasksv1.Task, error) {
 	panic("implement me")
 }
 
-func (s *Storage) TaskByID(ctx context.Context, id string) (models.Task, error) {
+func (s *Storage) TaskByID(ctx context.Context, id string) (*tasksv1.Task, error) {
 	panic("implement me")
 }
 
-func (s *Storage) TaskByName(ctx context.Context, userId int64, name string) (models.Task, error) {
+func (s *Storage) TaskByName(ctx context.Context, userId int64, name string) (*tasksv1.Task, error) {
 	panic("implement me")
 }
 

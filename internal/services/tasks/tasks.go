@@ -2,8 +2,8 @@ package tasks
 
 import (
 	"context"
+	tasksv1 "github.com/VoRaX00/todoProto/gen/go/tasks"
 	"log/slog"
-	"todoGRPC/internal/domain/models"
 )
 
 type Tasks struct {
@@ -15,13 +15,13 @@ type Tasks struct {
 }
 
 type TaskSaver interface {
-	SaveTask(ctx context.Context, name, description, deadline, token string) (*models.Task, error)
+	SaveTask(ctx context.Context, name, description, deadline, token string) (*tasksv1.Task, error)
 }
 
 type TaskProvider interface {
-	Tasks(ctx context.Context, page, countTaskOnPage int) ([]models.Task, error)
-	TaskByID(ctx context.Context, id string) (models.Task, error)
-	TaskByName(ctx context.Context, userId int64, name string) (models.Task, error)
+	Tasks(ctx context.Context, page, countTaskOnPage int) ([]*tasksv1.Task, error)
+	TaskByID(ctx context.Context, id string) (*tasksv1.Task, error)
+	TaskByName(ctx context.Context, userId int64, name string) (*tasksv1.Task, error)
 }
 
 type TaskUpdater interface {
@@ -46,26 +46,26 @@ func New(log *slog.Logger,
 	}
 }
 
-func (s *Tasks) Create(ctx context.Context, name, description, deadline, token string) (id int, err error) {
+func (s *Tasks) Create(ctx context.Context, name, description, deadline string, userId int64) (id int64, err error) {
 	panic("implement me")
 }
 
-func (s *Tasks) Get(ctx context.Context, page, countTaskOnPage int) (tasks []models.Task, err error) {
+func (s *Tasks) Get(ctx context.Context, page, countTaskOnPage, userId int64) (tasks []*tasksv1.Task, err error) {
 	panic("implement me")
 }
 
-func (s *Tasks) GetByName(ctx context.Context, userId int64, name, token string) (tasks []models.Task, err error) {
+func (s *Tasks) GetByName(ctx context.Context, name string, userId int64) (tasks []*tasksv1.Task, err error) {
 	panic("implement me")
 }
 
-func (s *Tasks) GetById(ctx context.Context, userId int64, token string, taskId int) (task models.Task, err error) {
+func (s *Tasks) GetById(ctx context.Context, userId, taskId int64) (task *tasksv1.Task, err error) {
 	panic("implement me")
 }
 
-func (s *Tasks) Update(ctx context.Context, name, description, deadline, token string) (message string, err error) {
+func (s *Tasks) Update(ctx context.Context, taskId int64, name, description, deadline string, userId int64) (message string, err error) {
 	panic("implement me")
 }
 
-func (s *Tasks) Delete(ctx context.Context, token string, taskId int) (message string, err error) {
+func (s *Tasks) Delete(ctx context.Context, taskId, userId int64) (message string, err error) {
 	panic("implement me")
 }
