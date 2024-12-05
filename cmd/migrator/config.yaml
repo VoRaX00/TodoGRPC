@@ -1,0 +1,6 @@
+host: "localhost"
+port: 3949
+db_name: "todo_db"
+user: "postgres"
+ssl_mode: "disable"
+is_drop: "false"
