@@ -40,7 +40,7 @@ func (s *serverAPI) Create(ctx context.Context, req *tasksv1.CreateTaskRequest) 
 	}
 
 	return &tasksv1.CreateTaskResponse{
-		Id: id,
+		TaskId: id,
 	}, nil
 }
 

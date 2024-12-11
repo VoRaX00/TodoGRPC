@@ -1,0 +1,10 @@
+env: "local"
+db:
+  host: "localhost"
+  port: 4957
+  db_name: "todo_db"
+  user: "postgres"
+  ssl_mode: "disable"
+grpc:
+  port: 44044
+  timeout: 5s

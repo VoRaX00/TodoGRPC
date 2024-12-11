@@ -7,6 +7,7 @@ import (
 	"fmt"
 	tasksv1 "github.com/VoRaX00/todoProto/gen/go/tasks"
 	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
 	"todoGRPC/internal/services/storage"
 )
 
