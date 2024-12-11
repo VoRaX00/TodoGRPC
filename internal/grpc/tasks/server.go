@@ -13,9 +13,9 @@ type Tasks interface {
 	Create(ctx context.Context, name, description, deadline string, userId int64) (id int64, err error)
 	Get(ctx context.Context, page, countTaskOnPage, userId int64) (tasks []*tasksv1.Task, err error)
 	GetByName(ctx context.Context, name string, userId int64) (tasks []*tasksv1.Task, err error)
-	GetById(ctx context.Context, userId, taskId int64) (task *tasksv1.Task, err error)
-	Update(ctx context.Context, taskId int64, name, description, deadline string, userId int64) error
-	Delete(ctx context.Context, taskId, userId int64) error
+	GetById(ctx context.Context, taskId int64) (task *tasksv1.Task, err error)
+	Update(ctx context.Context, name, description, deadline string, taskId int64) error
+	Delete(ctx context.Context, taskId int64) error
 }
 
 type serverAPI struct {
@@ -118,7 +118,7 @@ func (s *serverAPI) GetById(ctx context.Context, req *tasksv1.GetByIdRequest) (*
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	task, err := s.tasks.GetById(ctx, req.UserId, req.TaskId)
+	task, err := s.tasks.GetById(ctx, req.TaskId)
 	if err != nil {
 		// TODO: обработка ошибки
 	}
@@ -140,7 +140,7 @@ func (s *serverAPI) Update(ctx context.Context, req *tasksv1.UpdateTaskRequest) 
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	err := s.tasks.Update(ctx, req.TaskId, req.Name, req.Descriptions, req.Deadline, req.UserId)
+	err := s.tasks.Update(ctx, req.Name, req.Descriptions, req.Deadline, req.TaskId)
 	if err != nil {
 		// TODO: обработка ошибки
 	}
@@ -174,7 +174,7 @@ func (s *serverAPI) Delete(ctx context.Context, req *tasksv1.DeleteTaskRequest) 
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	err := s.tasks.Delete(ctx, req.TaskId, req.UserId)
+	err := s.tasks.Delete(ctx, req.TaskId)
 	if err != nil {
 		// TODO: обработка ошибки
 	}

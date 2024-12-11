@@ -47,7 +47,7 @@ func (s *Storage) Tasks(ctx context.Context, page, countTaskOnPage, userId int64
 	return tasks, nil
 }
 
-func (s *Storage) TaskByID(ctx context.Context, userId, taskId int64) (*tasksv1.Task, error) {
+func (s *Storage) TaskByID(ctx context.Context, taskId int64) (*tasksv1.Task, error) {
 	const op = "storage.postgres.TaskByID"
 	query := `SELECT name_task, description, deadline FROM tasks WHERE id = $1`
 	var task tasksv1.Task

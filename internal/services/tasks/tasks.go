@@ -20,16 +20,16 @@ type TaskSaver interface {
 
 type TaskProvider interface {
 	Tasks(ctx context.Context, page, countTaskOnPage, userId int64) ([]*tasksv1.Task, error)
-	TaskByID(ctx context.Context, userId, taskId int64) (*tasksv1.Task, error)
+	TaskByID(ctx context.Context, taskId int64) (*tasksv1.Task, error)
 	TaskByName(ctx context.Context, userId int64, name string) ([]*tasksv1.Task, error)
 }
 
 type TaskUpdater interface {
-	UpdateTask(ctx context.Context, name, description, deadline string, userId int64) error
+	UpdateTask(ctx context.Context, name, description, deadline string, taskId int64) error
 }
 
 type TaskDeleter interface {
-	DeleteTask(ctx context.Context, taskId, userId int64) error
+	DeleteTask(ctx context.Context, taskId int64) error
 }
 
 func New(log *slog.Logger,
@@ -97,16 +97,15 @@ func (s *Tasks) GetByName(ctx context.Context, name string, userId int64) (tasks
 	return res, nil
 }
 
-func (s *Tasks) GetById(ctx context.Context, userId, taskId int64) (task *tasksv1.Task, err error) {
+func (s *Tasks) GetById(ctx context.Context, taskId int64) (task *tasksv1.Task, err error) {
 	const op = "tasks.GetById"
 	log := s.log.With(
 		slog.String("op", op),
-		slog.Int64("userId", userId),
 		slog.Int64("taskId", taskId),
 	)
 
 	log.Info("getting task")
-	res, err := s.taskProvider.TaskByID(ctx, userId, taskId)
+	res, err := s.taskProvider.TaskByID(ctx, taskId)
 	if err != nil {
 		// TODO: обработка ошибки
 	}
@@ -114,15 +113,15 @@ func (s *Tasks) GetById(ctx context.Context, userId, taskId int64) (task *tasksv
 	return res, nil
 }
 
-func (s *Tasks) Update(ctx context.Context, taskId int64, name, description, deadline string, userId int64) error {
+func (s *Tasks) Update(ctx context.Context, name, description, deadline string, taskId int64) error {
 	const op = "tasks.Update"
 	log := s.log.With(
 		slog.String("op", op),
 		slog.Int64("taskId", taskId),
-		slog.Int64("userId", userId))
+	)
 
 	log.Info("updating task")
-	err := s.taskUpdater.UpdateTask(ctx, name, description, deadline, userId)
+	err := s.taskUpdater.UpdateTask(ctx, name, description, deadline, taskId)
 	if err != nil {
 		// TODO: обработка ошибки
 	}
@@ -131,15 +130,15 @@ func (s *Tasks) Update(ctx context.Context, taskId int64, name, description, dea
 	return err
 }
 
-func (s *Tasks) Delete(ctx context.Context, taskId, userId int64) error {
+func (s *Tasks) Delete(ctx context.Context, taskId int64) error {
 	const op = "tasks.Delete"
 	log := s.log.With(
 		slog.String("op", op),
 		slog.Int64("taskId", taskId),
-		slog.Int64("userId", userId))
+	)
 
 	log.Info("deleting task")
-	err := s.taskDeleter.DeleteTask(ctx, taskId, userId)
+	err := s.taskDeleter.DeleteTask(ctx, taskId)
 	if err != nil {
 		// TODO: обработка ошибки
 	}
