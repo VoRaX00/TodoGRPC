@@ -14,8 +14,8 @@ type Tasks interface {
 	Get(ctx context.Context, page, countTaskOnPage, userId int64) (tasks []*tasksv1.Task, err error)
 	GetByName(ctx context.Context, name string, userId int64) (tasks []*tasksv1.Task, err error)
 	GetById(ctx context.Context, userId, taskId int64) (task *tasksv1.Task, err error)
-	Update(ctx context.Context, taskId int64, name, description, deadline string, userId int64) (message string, err error)
-	Delete(ctx context.Context, taskId, userId int64) (message string, err error)
+	Update(ctx context.Context, taskId int64, name, description, deadline string, userId int64) error
+	Delete(ctx context.Context, taskId, userId int64) error
 }
 
 type serverAPI struct {
@@ -140,13 +140,13 @@ func (s *serverAPI) Update(ctx context.Context, req *tasksv1.UpdateTaskRequest) 
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	msg, err := s.tasks.Update(ctx, req.TaskId, req.Name, req.Descriptions, req.Deadline, req.UserId)
+	err := s.tasks.Update(ctx, req.TaskId, req.Name, req.Descriptions, req.Deadline, req.UserId)
 	if err != nil {
 		// TODO: обработка ошибки
 	}
 
 	return &tasksv1.UpdateTaskResponse{
-		Message: msg,
+		Message: "success",
 	}, nil
 }
 
@@ -174,12 +174,12 @@ func (s *serverAPI) Delete(ctx context.Context, req *tasksv1.DeleteTaskRequest) 
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	msg, err := s.tasks.Delete(ctx, req.TaskId, req.UserId)
+	err := s.tasks.Delete(ctx, req.TaskId, req.UserId)
 	if err != nil {
 		// TODO: обработка ошибки
 	}
 	return &tasksv1.DeleteTaskResponse{
-		Message: msg,
+		Message: "success",
 	}, nil
 }
 
