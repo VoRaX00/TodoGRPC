@@ -10,11 +10,11 @@ import (
 )
 
 type Tasks interface {
-	Create(ctx context.Context, name, description, deadline string, userId int64) (id int64, err error)
+	Create(ctx context.Context, name, description, typeTask, deadline string, userId int64) (id int64, err error)
 	Get(ctx context.Context, page, countTaskOnPage, userId int64) (tasks []*tasksv1.Task, err error)
 	GetByName(ctx context.Context, name string, userId int64) (tasks []*tasksv1.Task, err error)
 	GetById(ctx context.Context, taskId int64) (task *tasksv1.Task, err error)
-	Update(ctx context.Context, name, description, deadline string, taskId int64) error
+	Update(ctx context.Context, name, description, typeTask, deadline string, taskId int64) error
 	Delete(ctx context.Context, taskId int64) error
 }
 
@@ -34,7 +34,7 @@ func (s *serverAPI) Create(ctx context.Context, req *tasksv1.CreateTaskRequest) 
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	id, err := s.tasks.Create(ctx, req.Name, req.Descriptions, req.Deadline, req.UserId)
+	id, err := s.tasks.Create(ctx, req.Name, req.Descriptions, req.TypeTask, req.Deadline, req.UserId)
 	if err != nil {
 		// TODO: обработка ошибки
 	}
@@ -140,7 +140,7 @@ func (s *serverAPI) Update(ctx context.Context, req *tasksv1.UpdateTaskRequest) 
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	err := s.tasks.Update(ctx, req.Name, req.Descriptions, req.Deadline, req.TaskId)
+	err := s.tasks.Update(ctx, req.Task.Name, req.Task.Descriptions, req.Task.TypeTask, req.Task.Deadline, req.Task.Id)
 	if err != nil {
 		// TODO: обработка ошибки
 	}
@@ -151,19 +151,15 @@ func (s *serverAPI) Update(ctx context.Context, req *tasksv1.UpdateTaskRequest) 
 }
 
 func validateUpdate(req *tasksv1.UpdateTaskRequest) error {
-	if req.Name == "" {
+	if req.Task.Name == "" {
 		return status.Error(codes.InvalidArgument, "invalid name")
 	}
 
-	if _, err := time.Parse("02.01.2006", req.Deadline); err != nil {
+	if _, err := time.Parse("02.01.2006", req.Task.Deadline); err != nil {
 		return status.Error(codes.InvalidArgument, "invalid deadline")
 	}
 
-	if req.UserId <= 0 {
-		return status.Error(codes.InvalidArgument, "invalid user id")
-	}
-
-	if req.TaskId <= 0 {
+	if req.Task.Id <= 0 {
 		return status.Error(codes.InvalidArgument, "invalid task id")
 	}
 	return nil
@@ -184,10 +180,6 @@ func (s *serverAPI) Delete(ctx context.Context, req *tasksv1.DeleteTaskRequest) 
 }
 
 func validateDelete(req *tasksv1.DeleteTaskRequest) error {
-	if req.UserId <= 0 {
-		return status.Error(codes.InvalidArgument, "invalid user id")
-	}
-
 	if req.TaskId <= 0 {
 		return status.Error(codes.InvalidArgument, "invalid task id")
 	}

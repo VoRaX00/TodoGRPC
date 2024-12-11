@@ -4,7 +4,7 @@ go 1.23.2
 
 require (
 	github.com/BurntSushi/toml v1.2.1 // indirect
-	github.com/VoRaX00/todoProto v0.0.0-20241204020143-8cdd92fda513 // indirect
+	github.com/VoRaX00/todoProto v0.0.0-20241211023638-dbf4653b1dc3 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect

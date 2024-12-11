@@ -24,7 +24,7 @@ func New(storagePath string) (*Storage, error) {
 	return &Storage{db: db}, nil
 }
 
-func (s *Storage) SaveTask(ctx context.Context, name, description, deadline string, userId int64) (int64, error) {
+func (s *Storage) SaveTask(ctx context.Context, name, description, typeTask, deadline string, userId int64) (int64, error) {
 	const op = "storage.postgres.SaveTask"
 	query := `INSERT INTO tasks (name_task, description, deadline, user_id) VALUES ($1, $2, $3, $4) RETURNING id`
 	row := s.db.QueryRowContext(ctx, query, name, description, deadline, userId)
@@ -75,20 +75,20 @@ func (s *Storage) TaskByName(ctx context.Context, userId int64, name string) ([]
 	return tasks, nil
 }
 
-func (s *Storage) UpdateTask(ctx context.Context, name, description, deadline string, taskId int64) error {
+func (s *Storage) UpdateTask(ctx context.Context, name, description, typeTask, deadline string, taskId int64) error {
 	const op = "storage.postgres.UpdateTask"
-	query := `UPDATE tasks SET description = $1, deadline = $2 WHERE id = $3 `
-	_, err := s.db.ExecContext(ctx, query, description, deadline, taskId)
+	query := `UPDATE tasks SET name_task = $1 description = $2, deadline = $3 WHERE id = $4`
+	_, err := s.db.ExecContext(ctx, query, name, description, deadline, taskId)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
 	return nil
 }
 
-func (s *Storage) DeleteTask(ctx context.Context, taskId, userId int64) error {
+func (s *Storage) DeleteTask(ctx context.Context, taskId int64) error {
 	const op = "storage.postgres.DeleteTask"
-	query := `DELETE FROM tasks WHERE id = $1 AND user_id = $2`
-	_, err := s.db.ExecContext(ctx, query, taskId, userId)
+	query := `DELETE FROM tasks WHERE id = $1`
+	_, err := s.db.ExecContext(ctx, query, taskId)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}

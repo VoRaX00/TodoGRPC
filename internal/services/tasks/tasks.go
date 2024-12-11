@@ -15,7 +15,7 @@ type Tasks struct {
 }
 
 type TaskSaver interface {
-	SaveTask(ctx context.Context, name, description, deadline string, userId int64) (int64, error)
+	SaveTask(ctx context.Context, name, description, typeTask, deadline string, userId int64) (int64, error)
 }
 
 type TaskProvider interface {
@@ -25,7 +25,7 @@ type TaskProvider interface {
 }
 
 type TaskUpdater interface {
-	UpdateTask(ctx context.Context, name, description, deadline string, taskId int64) error
+	UpdateTask(ctx context.Context, name, description, typeTask, deadline string, taskId int64) error
 }
 
 type TaskDeleter interface {
@@ -46,7 +46,7 @@ func New(log *slog.Logger,
 	}
 }
 
-func (s *Tasks) Create(ctx context.Context, name, description, deadline string, userId int64) (int64, error) {
+func (s *Tasks) Create(ctx context.Context, name, description, taskType, deadline string, userId int64) (int64, error) {
 	const op = "tasks.Create"
 	log := s.log.With(
 		slog.String("op", op),
@@ -55,7 +55,7 @@ func (s *Tasks) Create(ctx context.Context, name, description, deadline string, 
 
 	log.Info("creating task")
 
-	id, err := s.taskSaver.SaveTask(ctx, name, description, deadline, userId)
+	id, err := s.taskSaver.SaveTask(ctx, name, description, taskType, deadline, userId)
 	if err != nil {
 		// TODO: обработка ошибки
 	}
@@ -113,7 +113,7 @@ func (s *Tasks) GetById(ctx context.Context, taskId int64) (task *tasksv1.Task, 
 	return res, nil
 }
 
-func (s *Tasks) Update(ctx context.Context, name, description, deadline string, taskId int64) error {
+func (s *Tasks) Update(ctx context.Context, name, description, taskType, deadline string, taskId int64) error {
 	const op = "tasks.Update"
 	log := s.log.With(
 		slog.String("op", op),
@@ -121,7 +121,7 @@ func (s *Tasks) Update(ctx context.Context, name, description, deadline string, 
 	)
 
 	log.Info("updating task")
-	err := s.taskUpdater.UpdateTask(ctx, name, description, deadline, taskId)
+	err := s.taskUpdater.UpdateTask(ctx, name, description, taskType, deadline, taskId)
 	if err != nil {
 		// TODO: обработка ошибки
 	}
