@@ -27,7 +27,7 @@ func New(storagePath string) (*Storage, error) {
 
 func (s *Storage) SaveTask(ctx context.Context, name, description, typeTask, deadline string, userId int64) (int64, error) {
 	const op = "storage.postgres.SaveTask"
-	query := `INSERT INTO tasks (name_task, description, deadline, user_id) VALUES ($1, $2, $3, $4) RETURNING id`
+	query := `INSERT INTO tasks (name_task, descriptions, deadline, user_id) VALUES ($1, $2, $3, $4) RETURNING id`
 	row := s.db.QueryRowContext(ctx, query, name, description, deadline, userId)
 	var id int64
 	err := row.Scan(&id)
@@ -39,7 +39,7 @@ func (s *Storage) SaveTask(ctx context.Context, name, description, typeTask, dea
 
 func (s *Storage) Tasks(ctx context.Context, page, countTaskOnPage, userId int64) ([]*tasksv1.Task, error) {
 	const op = "storage.postgres.Tasks"
-	query := `SELECT name_task, description, deadline FROM tasks WHERE user_id = $1 LIMIT $2 OFFSET $3`
+	query := `SELECT name_task, descriptions, deadline FROM tasks WHERE user_id = $1 LIMIT $2 OFFSET $3`
 	var tasks []*tasksv1.Task
 	err := s.db.GetContext(ctx, tasks, query, userId, page, countTaskOnPage)
 	if err != nil {
@@ -50,7 +50,7 @@ func (s *Storage) Tasks(ctx context.Context, page, countTaskOnPage, userId int64
 
 func (s *Storage) TaskByID(ctx context.Context, taskId int64) (*tasksv1.Task, error) {
 	const op = "storage.postgres.TaskByID"
-	query := `SELECT name_task, description, deadline FROM tasks WHERE id = $1`
+	query := `SELECT name_task, descriptions, deadline FROM tasks WHERE id = $1`
 	var task tasksv1.Task
 	err := s.db.GetContext(ctx, &task, query, taskId)
 	if err != nil {
@@ -64,9 +64,9 @@ func (s *Storage) TaskByID(ctx context.Context, taskId int64) (*tasksv1.Task, er
 
 func (s *Storage) TaskByName(ctx context.Context, userId int64, name string) ([]*tasksv1.Task, error) {
 	const op = "storage.postgres.TaskByName"
-	query := `SELECT name_task, description, deadline FROM tasks WHERE name = $1`
+	query := `SELECT name_task, descriptions, deadline FROM tasks WHERE name_task = $1 AND user_id = $2`
 	var tasks []*tasksv1.Task
-	err := s.db.SelectContext(ctx, &tasks, query, name)
+	err := s.db.SelectContext(ctx, &tasks, query, name, userId)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, storage.ErrTaskNotFound
@@ -78,7 +78,7 @@ func (s *Storage) TaskByName(ctx context.Context, userId int64, name string) ([]
 
 func (s *Storage) UpdateTask(ctx context.Context, name, description, typeTask, deadline string, taskId int64) error {
 	const op = "storage.postgres.UpdateTask"
-	query := `UPDATE tasks SET name_task = $1 description = $2, deadline = $3 WHERE id = $4`
+	query := `UPDATE tasks SET name_task = $1, descriptions = $2, deadline = $3 WHERE id = $4`
 	_, err := s.db.ExecContext(ctx, query, name, description, deadline, taskId)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)

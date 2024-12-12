@@ -3,11 +3,13 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/jmoiron/sqlx"
 	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 	"github.com/pressly/goose/v3"
+	"github.com/spf13/viper"
 	"os"
+	_ "todoGRPC/migrations"
 )
 
 type config struct {
@@ -33,7 +35,7 @@ func main() {
 	}
 
 	var migrationsPath string
-	flag.StringVar(&migrationsPath, "migrations-path", "", "Path to migrations folder")
+	flag.StringVar(&migrationsPath, "migrations", "", "Path to migrations folder")
 	flag.Parse()
 
 	if migrationsPath == "" {
@@ -53,31 +55,21 @@ func main() {
 }
 
 func mustLoadConfig() *config {
-	path := fetchConfigPath()
-	if path == "" {
-		panic("config path empty")
+	viper.AddConfigPath("cmd/migrator")
+	viper.SetConfigName("config")
+	if err := viper.ReadInConfig(); err != nil {
+		panic(err)
 	}
 
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		panic("config path does not exist")
-	}
-
-	var cfg config
-	if err := cleanenv.ReadConfig(path, &cfg); err != nil {
-		panic("Error reading config: " + err.Error())
+	var cfg = config{
+		host:    viper.GetString("host"),
+		port:    viper.GetInt("port"),
+		dbname:  viper.GetString("db_name"),
+		user:    viper.GetString("user"),
+		sslMode: viper.GetString("ssl_mode"),
+		isDrop:  viper.GetBool("is_drop"),
 	}
 
 	cfg.password = os.Getenv("DB_PASSWORD")
 	return &cfg
-}
-
-func fetchConfigPath() string {
-	var res string
-	flag.StringVar(&res, "config", "", "Path to config file")
-	flag.Parse()
-
-	if res == "" {
-		res = os.Getenv("CONFIG_MIGRATION_PATH")
-	}
-	return res
 }

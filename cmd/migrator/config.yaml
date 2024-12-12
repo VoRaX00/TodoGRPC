@@ -1,5 +1,5 @@
 host: "localhost"
-port: 3949
+port: 4957
 db_name: "todo_db"
 user: "postgres"
 ssl_mode: "disable"
