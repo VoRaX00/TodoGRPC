@@ -8,14 +8,16 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"time"
+	"todoGRPC/internal/domain/models"
+	"todoGRPC/internal/lib/mapper"
 	taskService "todoGRPC/internal/services/tasks"
 )
 
 type Tasks interface {
 	Create(ctx context.Context, name, description, typeTask, deadline string, userId int64) (id int64, err error)
-	Get(ctx context.Context, page, countTaskOnPage, userId int64) (tasks []*tasksv1.Task, err error)
-	GetByName(ctx context.Context, name string, userId int64) (tasks []*tasksv1.Task, err error)
-	GetById(ctx context.Context, taskId int64) (task *tasksv1.Task, err error)
+	Get(ctx context.Context, page, countTaskOnPage, userId int64) (tasks []models.Task, err error)
+	GetByName(ctx context.Context, name string, userId int64) (tasks []models.Task, err error)
+	GetById(ctx context.Context, taskId int64) (task models.Task, err error)
 	Update(ctx context.Context, name, description, typeTask, deadline string, taskId int64) error
 	Delete(ctx context.Context, taskId int64) error
 }
@@ -68,8 +70,13 @@ func (s *serverAPI) Get(ctx context.Context, req *tasksv1.GetAllRequest) (*tasks
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
+	res := make([]*tasksv1.Task, len(tasks))
+	for i, item := range tasks {
+		res[i] = mapper.MapToTaskV1(item)
+	}
+
 	return &tasksv1.GetAllResponse{
-		Task: tasks,
+		Task: res,
 	}, nil
 }
 
@@ -99,8 +106,13 @@ func (s *serverAPI) GetByName(ctx context.Context, req *tasksv1.GetByNameRequest
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
+	res := make([]*tasksv1.Task, len(tasks))
+	for i, item := range tasks {
+		res[i] = mapper.MapToTaskV1(item)
+	}
+
 	return &tasksv1.GetByNameResponse{
-		Task: tasks,
+		Task: res,
 	}, nil
 }
 
@@ -125,8 +137,10 @@ func (s *serverAPI) GetById(ctx context.Context, req *tasksv1.GetByIdRequest) (*
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
+	res := mapper.MapToTaskV1(task)
+
 	return &tasksv1.GetByIdResponse{
-		Task: task,
+		Task: res,
 	}, nil
 }
 

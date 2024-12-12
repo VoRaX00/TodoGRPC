@@ -5,9 +5,9 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	tasksv1 "github.com/VoRaX00/todoProto/gen/go/tasks"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
+	"todoGRPC/internal/domain/models"
 	"todoGRPC/internal/services/storage"
 )
 
@@ -37,10 +37,10 @@ func (s *Storage) SaveTask(ctx context.Context, name, description, typeTask, dea
 	return id, nil
 }
 
-func (s *Storage) Tasks(ctx context.Context, page, countTaskOnPage, userId int64) ([]*tasksv1.Task, error) {
+func (s *Storage) Tasks(ctx context.Context, page, countTaskOnPage, userId int64) ([]models.Task, error) {
 	const op = "storage.postgres.Tasks"
 	query := `SELECT name_task, descriptions, deadline FROM tasks WHERE user_id = $1 LIMIT $2 OFFSET $3`
-	var tasks []*tasksv1.Task
+	var tasks []models.Task
 	err := s.db.GetContext(ctx, tasks, query, userId, page, countTaskOnPage)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
@@ -48,24 +48,24 @@ func (s *Storage) Tasks(ctx context.Context, page, countTaskOnPage, userId int64
 	return tasks, nil
 }
 
-func (s *Storage) TaskByID(ctx context.Context, taskId int64) (*tasksv1.Task, error) {
+func (s *Storage) TaskByID(ctx context.Context, taskId int64) (models.Task, error) {
 	const op = "storage.postgres.TaskByID"
 	query := `SELECT name_task, descriptions, deadline FROM tasks WHERE id = $1`
-	var task tasksv1.Task
+	var task models.Task
 	err := s.db.GetContext(ctx, &task, query, taskId)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, storage.ErrTaskNotFound
+			return models.Task{}, storage.ErrTaskNotFound
 		}
-		return nil, fmt.Errorf("%s: %w", op, err)
+		return models.Task{}, fmt.Errorf("%s: %w", op, err)
 	}
-	return &task, nil
+	return task, nil
 }
 
-func (s *Storage) TaskByName(ctx context.Context, userId int64, name string) ([]*tasksv1.Task, error) {
+func (s *Storage) TaskByName(ctx context.Context, userId int64, name string) ([]models.Task, error) {
 	const op = "storage.postgres.TaskByName"
 	query := `SELECT name_task, descriptions, deadline FROM tasks WHERE name_task = $1 AND user_id = $2`
-	var tasks []*tasksv1.Task
+	var tasks []models.Task
 	err := s.db.SelectContext(ctx, &tasks, query, name, userId)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {

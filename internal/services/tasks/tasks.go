@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	tasksv1 "github.com/VoRaX00/todoProto/gen/go/tasks"
 	"log/slog"
+	"todoGRPC/internal/domain/models"
 	"todoGRPC/internal/services/storage"
 )
 
@@ -26,9 +26,9 @@ type TaskSaver interface {
 }
 
 type TaskProvider interface {
-	Tasks(ctx context.Context, page, countTaskOnPage, userId int64) ([]*tasksv1.Task, error)
-	TaskByID(ctx context.Context, taskId int64) (*tasksv1.Task, error)
-	TaskByName(ctx context.Context, userId int64, name string) ([]*tasksv1.Task, error)
+	Tasks(ctx context.Context, page, countTaskOnPage, userId int64) ([]models.Task, error)
+	TaskByID(ctx context.Context, taskId int64) (models.Task, error)
+	TaskByName(ctx context.Context, userId int64, name string) ([]models.Task, error)
 }
 
 type TaskUpdater interface {
@@ -72,7 +72,7 @@ func (s *Tasks) Create(ctx context.Context, name, description, taskType, deadlin
 	return id, err
 }
 
-func (s *Tasks) Get(ctx context.Context, page, countTaskOnPage, userId int64) (tasks []*tasksv1.Task, err error) {
+func (s *Tasks) Get(ctx context.Context, page, countTaskOnPage, userId int64) (tasks []models.Task, err error) {
 	const op = "tasks.Get"
 	log := s.log.With(
 		slog.String("op", op),
@@ -90,7 +90,7 @@ func (s *Tasks) Get(ctx context.Context, page, countTaskOnPage, userId int64) (t
 	return res, nil
 }
 
-func (s *Tasks) GetByName(ctx context.Context, name string, userId int64) (tasks []*tasksv1.Task, err error) {
+func (s *Tasks) GetByName(ctx context.Context, name string, userId int64) (tasks []models.Task, err error) {
 	const op = "tasks.GetByName"
 	log := s.log.With(
 		slog.String("op", op),
@@ -107,7 +107,7 @@ func (s *Tasks) GetByName(ctx context.Context, name string, userId int64) (tasks
 	return res, nil
 }
 
-func (s *Tasks) GetById(ctx context.Context, taskId int64) (task *tasksv1.Task, err error) {
+func (s *Tasks) GetById(ctx context.Context, taskId int64) (task models.Task, err error) {
 	const op = "tasks.GetById"
 	log := s.log.With(
 		slog.String("op", op),
@@ -118,7 +118,7 @@ func (s *Tasks) GetById(ctx context.Context, taskId int64) (task *tasksv1.Task, 
 	res, err := s.taskProvider.TaskByID(ctx, taskId)
 	if err != nil {
 		log.Error("failed to get task", err.Error())
-		return nil, fmt.Errorf("%s: %w", op, err)
+		return models.Task{}, fmt.Errorf("%s: %w", op, err)
 	}
 	log.Info("success get task")
 	return res, nil
