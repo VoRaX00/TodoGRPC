@@ -69,7 +69,7 @@ func (s *Storage) TaskByName(ctx context.Context, userId int64, name string) ([]
 	err := s.db.SelectContext(ctx, &tasks, query, name, userId)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, storage.ErrTaskNotFound
+			return nil, fmt.Errorf("%s: %w", op, storage.ErrTaskNotFound)
 		}
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
@@ -79,19 +79,38 @@ func (s *Storage) TaskByName(ctx context.Context, userId int64, name string) ([]
 func (s *Storage) UpdateTask(ctx context.Context, name, description, typeTask, deadline string, taskId int64) error {
 	const op = "storage.postgres.UpdateTask"
 	query := `UPDATE tasks SET name_task = $1, descriptions = $2, deadline = $3 WHERE id = $4`
-	_, err := s.db.ExecContext(ctx, query, name, description, deadline, taskId)
+	res, err := s.db.ExecContext(ctx, query, name, description, deadline, taskId)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	if rows == 0 {
+		return fmt.Errorf("%s: %w", op, storage.ErrTaskNotFound)
 	}
 	return nil
 }
 
 func (s *Storage) DeleteTask(ctx context.Context, taskId int64) error {
 	const op = "storage.postgres.DeleteTask"
+
 	query := `DELETE FROM tasks WHERE id = $1`
-	_, err := s.db.ExecContext(ctx, query, taskId)
+	res, err := s.db.ExecContext(ctx, query, taskId)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	if rows != 0 {
+		return fmt.Errorf("%s: %w", op, storage.ErrTaskNotFound)
 	}
 	return nil
 }

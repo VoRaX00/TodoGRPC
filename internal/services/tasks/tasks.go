@@ -2,8 +2,15 @@ package tasks
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	tasksv1 "github.com/VoRaX00/todoProto/gen/go/tasks"
 	"log/slog"
+	"todoGRPC/internal/services/storage"
+)
+
+var (
+	ErrTaskNotFound = errors.New("failed to update task")
 )
 
 type Tasks struct {
@@ -57,7 +64,8 @@ func (s *Tasks) Create(ctx context.Context, name, description, taskType, deadlin
 
 	id, err := s.taskSaver.SaveTask(ctx, name, description, taskType, deadline, userId)
 	if err != nil {
-		// TODO: обработка ошибки
+		log.Error("failed to creating a song", err.Error())
+		return 0, fmt.Errorf("%s: %w", op, err)
 	}
 
 	log.Info("success create task")
@@ -74,7 +82,8 @@ func (s *Tasks) Get(ctx context.Context, page, countTaskOnPage, userId int64) (t
 	log.Info("getting tasks")
 	res, err := s.taskProvider.Tasks(ctx, page, countTaskOnPage, userId)
 	if err != nil {
-		// TODO: обработка ошибки
+		log.Error("failed to get tasks", err.Error())
+		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
 	log.Info("success get tasks")
@@ -90,7 +99,8 @@ func (s *Tasks) GetByName(ctx context.Context, name string, userId int64) (tasks
 	log.Info("getting tasks")
 	res, err := s.taskProvider.TaskByName(ctx, userId, name)
 	if err != nil {
-		// TODO: обработка ошибки
+		log.Error("failed to get tasks", err.Error())
+		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
 	log.Info("success get tasks")
@@ -107,7 +117,8 @@ func (s *Tasks) GetById(ctx context.Context, taskId int64) (task *tasksv1.Task, 
 	log.Info("getting task")
 	res, err := s.taskProvider.TaskByID(ctx, taskId)
 	if err != nil {
-		// TODO: обработка ошибки
+		log.Error("failed to get task", err.Error())
+		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 	log.Info("success get task")
 	return res, nil
@@ -123,7 +134,13 @@ func (s *Tasks) Update(ctx context.Context, name, description, taskType, deadlin
 	log.Info("updating task")
 	err := s.taskUpdater.UpdateTask(ctx, name, description, taskType, deadline, taskId)
 	if err != nil {
-		// TODO: обработка ошибки
+		if errors.Is(err, storage.ErrTaskNotFound) {
+			log.Error("task not found")
+			return fmt.Errorf("%s: %w", op, ErrTaskNotFound)
+		}
+
+		log.Error("failed to update task", err.Error())
+		return fmt.Errorf("%s: %w", op, err)
 	}
 
 	log.Info("success update task")
@@ -140,7 +157,13 @@ func (s *Tasks) Delete(ctx context.Context, taskId int64) error {
 	log.Info("deleting task")
 	err := s.taskDeleter.DeleteTask(ctx, taskId)
 	if err != nil {
-		// TODO: обработка ошибки
+		if errors.Is(err, storage.ErrTaskNotFound) {
+			log.Error("task not found")
+			return fmt.Errorf("%s: %w", op, ErrTaskNotFound)
+		}
+
+		log.Error("failed to delete task", err.Error())
+		return fmt.Errorf("%s: %w", op, err)
 	}
 	return nil
 }

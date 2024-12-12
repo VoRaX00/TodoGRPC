@@ -2,11 +2,13 @@ package tasks
 
 import (
 	"context"
+	"errors"
 	tasksv1 "github.com/VoRaX00/todoProto/gen/go/tasks"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"time"
+	taskService "todoGRPC/internal/services/tasks"
 )
 
 type Tasks interface {
@@ -36,7 +38,7 @@ func (s *serverAPI) Create(ctx context.Context, req *tasksv1.CreateTaskRequest) 
 
 	id, err := s.tasks.Create(ctx, req.Name, req.Descriptions, req.TypeTask, req.Deadline, req.UserId)
 	if err != nil {
-		// TODO: обработка ошибки
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	return &tasksv1.CreateTaskResponse{
@@ -63,7 +65,7 @@ func (s *serverAPI) Get(ctx context.Context, req *tasksv1.GetAllRequest) (*tasks
 
 	tasks, err := s.tasks.Get(ctx, req.Page, req.CountTaskOnPage, req.UserId)
 	if err != nil {
-		// TODO: обработка ошибки
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	return &tasksv1.GetAllResponse{
@@ -94,7 +96,7 @@ func (s *serverAPI) GetByName(ctx context.Context, req *tasksv1.GetByNameRequest
 
 	tasks, err := s.tasks.GetByName(ctx, req.Name, req.UserId)
 	if err != nil {
-		// TODO: обработка ошибки
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	return &tasksv1.GetByNameResponse{
@@ -120,7 +122,7 @@ func (s *serverAPI) GetById(ctx context.Context, req *tasksv1.GetByIdRequest) (*
 
 	task, err := s.tasks.GetById(ctx, req.TaskId)
 	if err != nil {
-		// TODO: обработка ошибки
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	return &tasksv1.GetByIdResponse{
@@ -142,7 +144,10 @@ func (s *serverAPI) Update(ctx context.Context, req *tasksv1.UpdateTaskRequest) 
 
 	err := s.tasks.Update(ctx, req.Task.Name, req.Task.Descriptions, req.Task.TypeTask, req.Task.Deadline, req.Task.Id)
 	if err != nil {
-		// TODO: обработка ошибки
+		if errors.Is(err, taskService.ErrTaskNotFound) {
+			return nil, status.Error(codes.NotFound, err.Error())
+		}
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	return &tasksv1.UpdateTaskResponse{
@@ -172,7 +177,10 @@ func (s *serverAPI) Delete(ctx context.Context, req *tasksv1.DeleteTaskRequest) 
 
 	err := s.tasks.Delete(ctx, req.TaskId)
 	if err != nil {
-		// TODO: обработка ошибки
+		if errors.Is(err, taskService.ErrTaskNotFound) {
+			return nil, status.Error(codes.NotFound, err.Error())
+		}
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 	return &tasksv1.DeleteTaskResponse{
 		Message: "success",
